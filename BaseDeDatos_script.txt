@@ -1,0 +1,41 @@
+CREATE DATABASE Desertico;
+
+USE Desertico;
+
+CREATE TABLE Sensores (
+    idSensores int(20) AUTO_INCREMENT PRIMARY KEY,
+    temperatura float,
+    humedad float,
+    humedadTierra float,
+    dia bit,
+    consumoAgua float
+);
+
+
+
+CREATE DATABASE Cultivo;
+
+USE Cultivo;
+
+CREATE TABLE Sensores (
+    idSensores int(20) AUTO_INCREMENT PRIMARY KEY,
+    temperatura float,
+    humedad float,
+    humedadTierra float,
+    dia bit,
+    consumoAgua float
+);
+
+
+CREATE DATABASE PlantasHogar;
+
+USE PlantasHogar;
+
+CREATE TABLE Sensores (
+    idSensores int(20) AUTO_INCREMENT PRIMARY KEY,
+    temperatura float,
+    humedad float,
+    humedadTierra float,
+    dia bit,
+    consumoAgua float
+);
