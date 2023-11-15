@@ -1,5 +1,6 @@
 #include "DHT.h"
 #include <ESP8266WiFi.h>
+#include <ArduinoJson.h>
 #include <PubSubClient.h>
 #define DHT11PIN 5 //pin.D1
 #define DHT11PIN2 16 //pin.D0
@@ -14,7 +15,7 @@ const char* MQTT_username = NULL;
 const char* MQTT_password = NULL; 
 
 // Change the variable to your Raspberry Pi IP address, so it connects to your MQTT broker
-const char* mqtt_server = "10.41.49.243";
+const char* mqtt_server = "10.41.53.144";
 //For example
 //const char* mqtt_server = "192.168.1.106";
 
@@ -26,13 +27,16 @@ DHT dht11(DHT11PIN, DHT11TYPE);
 int LDR = 16;
 float h11;
 float t11;
-String day;
+float rh11;
+bool day;
 
 int analog_pin = A0;
 int humedad_suelo;
 int humedad_suelomap;
 int luz;
 int luz_map;
+int consumo = 0; //CAMBIAR DESPUES
+
 
 
 // Timers auxiliar variables
@@ -140,29 +144,32 @@ void loop() {
   now = millis();
   // Publishes new temperature and humidity every 30 seconds
   if (now - lastMeasure > 30000) {
-    dht_11();
-    // // Check if any reads failed and exit early (to try again).
-    // if (isnan(humidity) || isnan(temperatureC) || isnan(temperatureF)) {
-    //   Serial.println("Failed to read from DHT sensor!");
-    //   return;
-    // }
+  lastMeasure = now;
+    
 
-    // Publishes Temperature and Humidity values
-    client.publish("room/temperature", String(t11).c_str());
-    client.publish("room/humidity", String(h11).c_str());
-    client.publish("room/Ghumidity", String(humedad_suelomap).c_str());
-    client.publish("room/day", String(day).c_str());
-    //Uncomment to publish temperature in F degrees
-    //client.publish("room/temperature", String(temperatureF).c_str());
+
 
     // put your main code here, to run repeatedly:
     humedadsuelo();
-    delay(1000);
     dht_11();
-    delay(1000);
     luzSensor();
-    delay(1000);
-    //lampara_calor(t11);
+
+    t11 = round (t11 * 100.0) / 100.0;
+        StaticJsonDocument<128> doc;
+
+    doc["Temperatura"] = t11;
+    doc["Humedad"] = rh11;
+    doc["HumedadTierra"] = humedad_suelomap;
+    doc["Dia"] = day;
+    doc["ConsumoAgua"] = consumo;
+
+    String output;
+    
+    serializeJson(doc, output);
+
+    Serial.print("Publish message: ");
+    Serial.println(output);
+    client.publish("room/habitacional", output.c_str()); //cultivo habitacional
   }
 
 }
@@ -181,12 +188,12 @@ void luzSensor(){
   luz_map = map(luz, 0, 1023, 100, 0);
 
   if(luz_map > 50){
-    day = "True";
+    day = "1";
     Serial.print("Luz: ");
     Serial.print("Dia");
     Serial.print("\n");
   }else{
-    day = "False";
+    day = "0";
     Serial.print("Luz: ");
     Serial.print("Noche");
     Serial.print("\n");
@@ -209,12 +216,13 @@ void dht_11(){
   Serial.print(F("%  Temperature: "));
   Serial.print(t11);
   Serial.println(F("°C "));
+
+  //if (t11 >= 30){
+  digitalWrite(LED_BUILTIN, LOW);
+    //delay(1000);
+  //}
+  //else{
+    //digitalWrite(LED_BUILTIN, HIGH);
+  //}
+
 }
-/*
-void lampara_calor(float temp) {
-  digitalWrite(LED_BUILTIN, HIGH); //apagar
-  if (temp>= 25 && temp<=30){
-    digitalWrite(LED_BUILTIN, LOW); //prender
-  }
-  delay(500);
-} */
