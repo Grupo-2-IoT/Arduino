@@ -27,7 +27,7 @@ DHT dht11(DHT11PIN, DHT11TYPE);
 int LDR = 16;
 float h11;
 float t11;
-float rh11;
+float rh11; //?
 bool day;
 
 int analog_pin = A0;
@@ -158,7 +158,7 @@ void loop() {
         StaticJsonDocument<128> doc;
 
     doc["Temperatura"] = t11;
-    doc["Humedad"] = rh11;
+    doc["Humedad"] = h11;
     doc["HumedadTierra"] = humedad_suelomap;
     doc["Dia"] = day;
     doc["ConsumoAgua"] = consumo;
